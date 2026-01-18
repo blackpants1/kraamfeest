@@ -1,0 +1,108 @@
+{
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "kraamfeest",
+                "options": {}
+            },
+            "id": "1d8b7a6e-4c2d-4e9f-8a12-8e3d4c5b6a7f",
+            "name": "Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ],
+            "webhookId": "kraamfeest"
+        },
+        {
+            "parameters": {
+                "operation": "append",
+                "tableId": "aanmeldingen",
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "Naam": "={{ $json.body.name }}",
+                        "Email": "={{ $json.body.email }}",
+                        "Volwassenen": "={{ $json.body.adults }}",
+                        "Kinderen": "={{ $json.body.children }}",
+                        "Datum": "={{ $now }}"
+                    }
+                },
+                "options": {}
+            },
+            "id": "2d8b7a6e-4c2d-4e9f-8a12-8e3d4c5b6a7f",
+            "name": "Opslaan in Tabel",
+            "type": "n8n-nodes-base.n8nDataTable",
+            "typeVersion": 1,
+            "position": [
+                450,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "fromEmail": "info@clickwave.nl",
+                "toEmail": "={{ $node[\"Webhook\"].json.body.email }}",
+                "subject": "Hoera! We hebben je aanmelding ontvangen 🌼",
+                "html": "=<div style=\"background-color: #e8e0d8; padding: 40px; font-family: sans-serif; color: #6b5d4d;\">\n  <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; padding: 40px; text-align: center; border: 1px solid #ffffff;\">\n    <h1 style=\"color: #c9a227; font-size: 32px; margin-bottom: 20px;\">Hoera!</h1>\n    <p style=\"font-size: 18px; line-height: 1.6;\">Wat leuk dat jullie erbij zijn, <strong>{{ $node[\"Webhook\"].json.body.name }}</strong>!</p>\n    <p style=\"font-size: 16px;\">We kijken ernaar uit om samen Nova's geboorte en Joshua's 7e verjaardag te vieren.</p>\n    <div style=\"margin: 30px 0; padding: 20px; background-color: #fcfaf8; border-radius: 16px; display: inline-block; text-align: left;\">\n      <p style=\"margin: 5px 0;\"><strong>Datum:</strong> Zaterdag 18 april 2026</p>\n      <p style=\"margin: 5px 0;\"><strong>Tijd:</strong> 14:00 - 17:00 uur</p>\n      <p style=\"margin: 5px 0;\"><strong>Locatie:</strong> Brasserie La Dolce Vita, Voorthuizen</p>\n    </div>\n    <p style=\"font-size: 14px; color: #8a7b6a;\">Tot dan!</p>\n    <p style=\"color: #c9a227; font-weight: bold;\">Roy, Laura, Joshua, Liam & Nova</p>\n  </div>\n</div>",
+                "options": {}
+            },
+            "id": "3d8b7a6e-4c2d-4e9f-8a12-8e3d4c5b6a7f",
+            "name": "Bedankmail Persoon (SMTP)",
+            "type": "n8n-nodes-base.emailSend",
+            "typeVersion": 2,
+            "position": [
+                650,
+                200
+            ]
+        },
+        {
+            "parameters": {
+                "fromEmail": "info@clickwave.nl",
+                "toEmail": "roy@clickwave.nl",
+                "subject": "Nieuwe aanmelding: {{ $node[\"Webhook\"].json.body.name }}",
+                "html": "=<div style=\"background-color: #f7f3f0; padding: 40px; font-family: sans-serif;\">\n  <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; padding: 30px; border-left: 8px solid #c9a227;\">\n    <h2 style=\"color: #6b5d4d;\">Nieuwe RSVP Ontvangen! 🌼</h2>\n    <p>Er is een nieuwe aanmelding binnengekomen via de website:</p>\n    <table style=\"width: 100%; border-collapse: collapse; margin-top: 20px;\">\n      <tr><td style=\"padding: 8px 0; border-bottom: 1px solid #eee;\"><strong>Naam:</strong></td><td>{{ $node[\"Webhook\"].json.body.name }}</td></tr>\n      <tr><td style=\"padding: 8px 0; border-bottom: 1px solid #eee;\"><strong>Email:</strong></td><td>{{ $node[\"Webhook\"].json.body.email }}</td></tr>\n      <tr><td style=\"padding: 8px 0; border-bottom: 1px solid #eee;\"><strong>Volwassenen:</strong></td><td>{{ $node[\"Webhook\"].json.body.adults }}</td></tr>\n      <tr><td style=\"padding: 8px 0; border-bottom: 1px solid #eee;\"><strong>Kinderen:</strong></td><td>{{ $node[\"Webhook\"].json.body.children }}</td></tr>\n    </table>\n  </div>\n</div>",
+                "options": {}
+            },
+            "id": "4d8b7a6e-4c2d-4e9f-8a12-8e3d4c5b6a7f",
+            "name": "Mail naar Admin (SMTP)",
+            "type": "n8n-nodes-base.emailSend",
+            "typeVersion": 2,
+            "position": [
+                650,
+                400
+            ]
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Opslaan in Tabel",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Opslaan in Tabel": {
+            "main": [
+                [
+                    {
+                        "node": "Bedankmail Persoon (SMTP)",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Mail naar Admin (SMTP)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
